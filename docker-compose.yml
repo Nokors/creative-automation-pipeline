@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: campaigns_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: campaigns_db
+      MYSQL_USER: campaign_user
+      MYSQL_PASSWORD: campaignpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/setup_mysql.sql:/docker-entrypoint-initdb.d/setup.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: campaigns_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: .
+    container_name: campaigns_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+pymysql://campaign_user:campaignpass@mysql:3306/campaigns_db
+      REDIS_URL: redis://redis:6379/0
+      BASIC_AUTH_USERNAME: admin
+      BASIC_AUTH_PASSWORD: changeme
+      STORAGE_PATH: /app/storage
+      UPLOAD_PATH: /app/storage/uploads
+      GENERATED_PATH: /app/storage/generated
+    volumes:
+      - ./storage:/app/storage
+      - ./.env:/app/.env
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  celery:
+    build: .
+    container_name: campaigns_celery
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+pymysql://campaign_user:campaignpass@mysql:3306/campaigns_db
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_PATH: /app/storage
+      UPLOAD_PATH: /app/storage/uploads
+      GENERATED_PATH: /app/storage/generated
+    volumes:
+      - ./storage:/app/storage
+      - ./.env:/app/.env
+    command: celery -A services.celery_app worker --loglevel=info --concurrency=2
+
+  frontend:
+    build: ./front-end
+    container_name: campaigns_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    driver: local
+
