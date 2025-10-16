@@ -117,7 +117,7 @@ ENABLE_CONTENT_VALIDATION=true
 
 ### Quick Start via Docker
 
-### 3. Start All Services
+### 1 Start All Services
 
 ```bash
 docker-compose up -d
@@ -129,12 +129,12 @@ This will start:
 - API on port 8000
 - Frontend on port 3000
 
-### 2. Check Service Status
+#### 2. Check Service Status
 
 ```bash
 docker-compose ps
 ```
-### 3. Check Service Status
+### 3. Open page in the browser
 Open page:
 
 ```
