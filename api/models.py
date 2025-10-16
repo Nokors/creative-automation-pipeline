@@ -57,6 +57,10 @@ class Campaign(Base):
     content_validation_status = Column(String(20), nullable=True)  # 'passed', 'skipped', 'not_validated'
     content_validation_message = Column(Text, nullable=True)
     
+    brand_validation_status = Column(String(20), nullable=True)
+    brand_validation_message = Column(Text, nullable=True)
+    brand_validation_result = Column(JSON, nullable=True)    
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
