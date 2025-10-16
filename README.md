@@ -42,7 +42,6 @@ Automatic validation of campaign content against prohibited words:
 - ✅ Can be enabled/disabled via environment variables
 - ✅ Detailed error messages showing which fields contain prohibited words
 
-See [CONTENT_VALIDATION.md](CONTENT_VALIDATION.md) for details.
 
 ### Brand Color Validation
 Automatic validation of campaign images for brand color compliance:
