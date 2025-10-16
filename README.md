@@ -134,6 +134,12 @@ This will start:
 ```bash
 docker-compose ps
 ```
+### 3. Check Service Status
+Open page:
+
+```
+http://localhost:3000/
+```
 
 ## 📚 API Endpoints
 
